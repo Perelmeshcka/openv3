@@ -2,7 +2,12 @@
 #include "draw.h"
 #include "utils.h"
 
+#ifdef __APPLE__
 #include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
