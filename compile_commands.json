@@ -1,0 +1,59 @@
+[
+  {
+    "file": "src/open.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-std=c99",
+      "-g",
+      "-framework",
+      "-framework",
+      "-Wno-deprecated-declarations",
+      "-c",
+      "src/open.c",
+      "-o",
+      "src/open.o"
+    ],
+    "directory": "/Users/yarik/Documents/truth/openv3",
+    "output": "src/open.o"
+  },
+  {
+    "file": "src/utils.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-std=c99",
+      "-g",
+      "-framework",
+      "-framework",
+      "-Wno-deprecated-declarations",
+      "-c",
+      "src/utils.c",
+      "-o",
+      "src/utils.o"
+    ],
+    "directory": "/Users/yarik/Documents/truth/openv3",
+    "output": "src/utils.o"
+  },
+  {
+    "file": "src/draw.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-std=c99",
+      "-g",
+      "-framework",
+      "-framework",
+      "-Wno-deprecated-declarations",
+      "-c",
+      "src/draw.c",
+      "-o",
+      "src/draw.o"
+    ],
+    "directory": "/Users/yarik/Documents/truth/openv3",
+    "output": "src/draw.o"
+  }
+]
