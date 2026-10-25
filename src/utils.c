@@ -12,6 +12,14 @@ void trginit(trg *t) {
   }
 }
 
+int sgn(dbl a) {
+  if (fabs(a) <= EPS)
+    return 0;
+  if (a < -EPS)
+    return -1;
+  return 1;
+}
+
 vec3 cam(vec3 a, pos c, trg T) {
   a.x -= c.x;
   a.y -= c.y;
@@ -36,7 +44,7 @@ vec3 cam(vec3 a, pos c, trg T) {
 
 vec2 proj(vec3 r, u32 f, u32 w, u32 h) {
   dbl x = (dbl)(w >> 1) + f * r.x / r.y;
-  dbl y = (dbl)(h >> 1) - f * r.z / r.y;
+  dbl y = (dbl)(h >> 1) + f * r.z / r.y;
 
   return (vec2){x, y};
 }

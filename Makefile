@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -Wall -Wextra -std=c99 -g
+CFLAGS = -Wall -Wextra -std=c99 -g -O3
 LDFLAGS = -lm
 
 # CFLAGS += $(shell pkg-config --cflags raylib)
@@ -9,12 +9,12 @@ LDFLAGS = -lm
 CFLAGS += -framework OpenGL -framework GLUT -Wno-deprecated-declarations
 
 TARGET = open
-SRCS = src/open.c src/utils.c src/draw.c
+SRCS = src/open.c src/utils.c src/draw.c src/bsp.c
 OBJS = $(SRCS:.c=.o)
 
 all: $(TARGET)
 
-$(OBJS): src/config.h src/utils.h src/draw.h
+$(OBJS): src/config.h src/utils.h src/draw.h src/bsp.h
 
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)

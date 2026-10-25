@@ -4,6 +4,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifndef EPS
+#define EPS 1e-9
+#endif
+
 #ifndef min
 #define min(x, y) ((x) < (y) ? (x) : (y))
 #endif
@@ -37,8 +41,15 @@ typedef struct rgb {
   u8 r, g, b;
 } rgb;
 
+typedef struct rgba {
+  u8 r, g, b;
+  bool a;
+} rgba;
+
 typedef struct frame {
   rgb pix[HEIGHT][WIDTH];
+  bool closed[HEIGHT][WIDTH];
+  u32 cnum;
   // u32 ybuff[WIDTH][HEIGHT];
 } frame;
 
@@ -53,6 +64,9 @@ typedef struct trg {
 } trg;
 
 void trginit(trg *);
+int sgn(dbl);
+
+vec2 center(vec2 *p, u32 len);
 
 vec3 cam(vec3 absolute, pos campos, trg);
 vec2 proj(vec3 relative, u32 focus, u32 width, u32 height);
@@ -63,16 +77,36 @@ vec2 cross(vec3, vec3);
 
 typedef struct wall {
   vec2 a, b;  /* bottom x, y */
+  vec3 leq;
+  bool psv;
   dbl zb, zt; /* bottom z, top z */
   rgb col;
 } wall;
 
-typedef struct prism {
-  vec2 *b; /* bottom x, y */
-  rgb *c;
+typedef struct pol3 {
+  vec3 *v;
   u32 len;
-  vec2 cen; /* center x, y */
-  dbl zb, zt;
-  rgb tc, bc;
-  bool bspused;
-} prism;
+} pol3;
+
+typedef struct pol2 {
+  vec2 *v;
+  u32 len;
+} pol2;
+
+typedef struct item {
+  u32 w, h;
+  rgba *tex;
+} item;
+extern item *itemstore;
+extern u32 itemnum;
+
+void iteminitstore(void);
+
+typedef struct spawn {
+  u32 next;
+  vec3 pos;
+} spawn;
+extern spawn *spawnstore;
+extern u32 spawnnum;
+
+void spawninitstore(void);

@@ -2,16 +2,20 @@
 #include "utils.h"
 
 #include <stdlib.h>
+#include <string.h>
 
-void pixel(uv2 p, rgb col, frame *f) {
-  if (p.x < WIDTH && p.y < HEIGHT)
-    f->pix[p.y][p.x] = col;
+void frameupd(frame *f) {
+  memset(f->closed, 0, sizeof(f->closed));
+  f->cnum = 0;
 }
 
-typedef struct pol3 {
-  vec3 *v;
-  u32 len;
-} pol3;
+void pixel(uv2 p, rgb col, frame *f) {
+  if (p.x < WIDTH && p.y < HEIGHT && !f->closed[p.y][p.x]) {
+    f->pix[p.y][p.x] = col;
+    f->closed[p.y][p.x] = true;
+    ++f->cnum;
+  }
+}
 
 pol3 clip(pol3 p, u32 near) {
   bool ain, bin;
@@ -44,11 +48,6 @@ pol3 clip(pol3 p, u32 near) {
 
   return res;
 }
-
-typedef struct pol2 {
-  vec2 *v;
-  u32 len;
-} pol2;
 
 /* true -> OX false -> OY */
 static dbl coord(vec2 v, bool axis) { return axis ? v.x : v.y; }
@@ -160,6 +159,12 @@ static void drawpoly(pol3 p, rgb col, frame *f) {
   prod.len = len;
   for (u32 i = 0; i < len; ++i)
     prod.v[i] = proj(pclip.v[i], 200, WIDTH, HEIGHT);
+
+  if (prod.len <= 2)
+    goto end;
+  // if (check && (prod.v[0].x < prod.v[1].x) && (prod.v[2].x > prod.v[3].x))
+  //   goto end;
+
   clip4edges(&prod);
   len = prod.len;
 
@@ -202,13 +207,15 @@ end:
 }
 
 void drawwall(wall w, pos c, frame *f, trg T) {
-  vec3 v[4] = {
-      cam((vec3){w.a.x, w.a.y, w.zb}, c, T),
-      cam((vec3){w.b.x, w.b.y, w.zb}, c, T),
-      cam((vec3){w.b.x, w.b.y, w.zt}, c, T),
-      cam((vec3){w.a.x, w.a.y, w.zt}, c, T),
-  };
-  drawpoly((pol3){v, 4}, w.col, f);
+  if ((w.psv) ^ (sgn(lval((vec2){c.x, c.y}, w.leq)) < 0)) {
+    vec3 v[4] = {
+        cam((vec3){w.a.x, w.a.y, w.zb}, c, T),
+        cam((vec3){w.b.x, w.b.y, w.zb}, c, T),
+        cam((vec3){w.b.x, w.b.y, w.zt}, c, T),
+        cam((vec3){w.a.x, w.a.y, w.zt}, c, T),
+    };
+    drawpoly((pol3){v, 4}, w.col, f);
+  }
 }
 
 bool rgbequal(rgb c1, rgb c2) {
@@ -219,4 +226,58 @@ void fillframe(frame *f, rgb col) {
   rgb *p = f->pix[0];
   for (size_t i = 0; i < WIDTH * HEIGHT; ++i)
     p[i] = col;
+}
+
+static void drawprism(prism p, pos c, frame *f, trg t) {
+  if (c.z > p.zb && c.z < p.zt)
+    return;
+
+  pol3 p3 = {
+      .v = (vec3 *)calloc(p.top.len, sizeof(vec3)),
+      .len = p.top.len,
+  };
+
+  for (u32 i = 0; i < p3.len; ++i) {
+    p3.v[i] = (vec3){
+        .x = p.top.v[i].x,
+        .y = p.top.v[i].y,
+        .z = (c.z >= p.zt) ? p.zt : p.zb,
+    };
+    p3.v[i] = cam(p3.v[i], c, t);
+  }
+
+  rgb col = (c.z >= p.zt) ? p.ct : p.cb;
+
+  drawpoly(p3, col, f);
+  free(p3.v);
+
+  for (u32 i = 0; i < p.wallnum; ++i) {
+    drawwall(p.walls[i], c, f, t);
+  }
+}
+
+void drawbsp(bspnode *node, pos c, frame *f, trg t) {
+  if (!node)
+    return;
+  if (f->cnum == HEIGHT * WIDTH)
+    return;
+
+  int sc = sgn(lval((vec2){c.x, c.y}, node->del));
+  if (!node->delnum) {
+    for (u32 i = 0; i < node->prismnum; ++i)
+      drawprism(node->prisms[i], c, f, t);
+    return;
+  }
+
+  if (sc >= 0) {
+    drawbsp((bspnode *)node->left, c, f, t);
+    for (u32 i = 0; i < node->delnum; ++i)
+      drawwall(node->delim[i], c, f, t);
+    drawbsp((bspnode *)node->right, c, f, t);
+  } else {
+    drawbsp((bspnode *)node->right, c, f, t);
+    for (u32 i = 0; i < node->delnum; ++i)
+      drawwall(node->delim[i], c, f, t);
+    drawbsp((bspnode *)node->left, c, f, t);
+  }
 }
