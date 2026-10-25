@@ -60,9 +60,10 @@ static prism prisminit(vec2 *v, rgb *c, u32 len, dbl zt, dbl zb, rgb ct,
   return res;
 }
 
+char *path;
 void sceneinit(void) {
   map = malloc(sizeof(bspnode));
-  FILE *mapfile = fopen("src/map.prisms", "r");
+  FILE *mapfile = fopen(path, "rb");
   assert(mapfile);
 
   u32 prnum;
@@ -77,7 +78,7 @@ void sceneinit(void) {
   u32 n;
   vec2 *top;
   rgb *c;
-  dbl zt, zb;
+  int zt, zb, curx, cury;
   rgb ct, cb;
 
   u32 i, j;
@@ -86,14 +87,18 @@ void sceneinit(void) {
     top = (vec2 *)calloc(n, sizeof(vec2));
     c = (rgb *)calloc(n, sizeof(rgb));
 
-    for (j = 0; j < n; ++j)
-      fscanf(mapfile, "%lf %lf", &top[j].x, &top[j].y);
-    for (j = 0; j < n; ++j)
-      fscanf(mapfile, "%hhu %hhu %hhu", &c[j].r, &c[j].g, &c[j].b);
+    for (j = 0; j < n; ++j) {
+      fscanf(mapfile, "%d %d ", &curx, &cury);
+      top[j].x = curx;
+      top[j].y = cury;
+    }
 
-    fscanf(mapfile, "%lf %lf", &zt, &zb);
-    fscanf(mapfile, "%hhu %hhu %hhu", &ct.r, &ct.g, &ct.b);
-    fscanf(mapfile, "%hhu %hhu %hhu", &cb.r, &cb.g, &cb.b);
+    for (j = 0; j < n; ++j)
+      fscanf(mapfile, "%c%c%c", &c[j].r, &c[j].g, &c[j].b);
+
+    fscanf(mapfile, " %d %d ", &zt, &zb);
+    fscanf(mapfile, "%c%c%c", &ct.r, &ct.g, &ct.b);
+    fscanf(mapfile, "%c%c%c", &cb.r, &cb.g, &cb.b);
 
     map->prisms[i] = prisminit(top, c, n, zt, zb, ct, cb);
     
@@ -224,8 +229,15 @@ void keyup(u8 key, int, int) {
 }
 
 int main(int argc, char **argv) {
+  if (argc == 1) {
+    fputs("! provide map file", stderr);
+    return 1;
+  }
+  path = argv[1];
+ 
   tick = 0;
   trginit(&T);
+  
   sceneinit();
 
   glutInit(&argc, argv);
