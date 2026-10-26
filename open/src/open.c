@@ -23,7 +23,7 @@ prism *prisms;
 u32 prismnum;
 bspnode *map;
 pos campos;
-tex testt;
+tex *testt;
 item test;
 
 bool keystate[256];
@@ -64,16 +64,22 @@ static prism prisminit(vec2 *v, rgb *c, u32 len, dbl zt, dbl zb, rgb ct,
 
 char *path;
 void sceneinit(void) {
-  testt = (tex){
-      .w = 1,
-      .h = 2,
-      .pix = (rgb[2]){{0, 0, 0}, {0, 255, 0}},
+  testt = (tex *)malloc(sizeof(tex));
+  *testt = (tex){
+      .w = 4,
+      .h = 8,
+      .pix = (rgb *)calloc(4 * 8, sizeof(rgb)),
   };
+  u32 x, y;
+  for (y = 0; y < testt->h; ++y)
+    for (x = 0; x < testt->w; ++x)
+      testt->pix[y * testt->w + x] = (((x + y) & 1) ? (rgb){160, 0, 0} : (rgb){255, 0, 255});
+
   test = (item){
-      .w = 5,
-      .h = 10,
+      .w = 16,
+      .h = 32,
       .pos = {0, 200, 10},
-      .t = &testt,
+      .t = testt,
   };
   fputs("1", stderr);
 
