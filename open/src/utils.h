@@ -41,11 +41,6 @@ typedef struct rgb {
   u8 r, g, b;
 } rgb;
 
-typedef struct rgba {
-  u8 r, g, b;
-  bool a;
-} rgba;
-
 typedef struct frame {
   rgb pix[HEIGHT][WIDTH];
   bool closed[HEIGHT][WIDTH];
@@ -93,20 +88,13 @@ typedef struct pol2 {
   u32 len;
 } pol2;
 
+typedef struct tex {
+  u32 w, h;
+  rgb *pix;
+} tex;
+
 typedef struct item {
   u32 w, h;
-  rgba *tex;
-} item;
-extern item *itemstore;
-extern u32 itemnum;
-
-void iteminitstore(void);
-
-typedef struct spawn {
-  u32 next;
   vec3 pos;
-} spawn;
-extern spawn *spawnstore;
-extern u32 spawnnum;
-
-void spawninitstore(void);
+  tex *t;
+} item;

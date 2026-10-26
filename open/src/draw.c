@@ -1,6 +1,7 @@
 #include "draw.h"
 #include "utils.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -10,6 +11,8 @@ void frameupd(frame *f) {
 }
 
 void pixel(uv2 p, rgb col, frame *f) {
+  if (col.r == 255 && col.g == 0 && col.b == 255)
+    return;
   if (p.x < WIDTH && p.y < HEIGHT && !f->closed[p.y][p.x]) {
     f->pix[p.y][p.x] = col;
     f->closed[p.y][p.x] = true;
@@ -158,7 +161,7 @@ static void drawpoly(pol3 p, rgb col, frame *f) {
   prod.v = (vec2 *)calloc(len, sizeof(vec2));
   prod.len = len;
   for (u32 i = 0; i < len; ++i)
-    prod.v[i] = proj(pclip.v[i], 200, WIDTH, HEIGHT);
+    prod.v[i] = proj(pclip.v[i], FOCUS, WIDTH, HEIGHT);
 
   if (prod.len <= 2)
     goto end;
@@ -254,6 +257,33 @@ static void drawprism(prism p, pos c, frame *f, trg t) {
   for (u32 i = 0; i < p.wallnum; ++i) {
     drawwall(p.walls[i], c, f, t);
   }
+}
+
+void drawitem(item s, pos c, frame *f, trg t) {
+  vec3 spos = cam(s.pos, c, t);
+  if (spos.y < 1)
+    return;
+  vec2 botmid = proj(spos, FOCUS, WIDTH, HEIGHT);
+
+  dbl k = FOCUS / spos.y;
+  u32 h = s.h * k;
+  u32 w = s.w * k;
+
+  int minx = (int)botmid.x - (w >> 1);
+  int maxx = (int)botmid.x + (w >> 1);
+  int miny = (int)botmid.y - h;
+  int maxy = (int)botmid.y;
+
+  if (maxx < 0 || minx >= WIDTH || maxy < 0 || miny >= HEIGHT)
+    return;
+
+  u32 x, y;
+  for (y = max(0, miny); (int)y < min(maxy, HEIGHT); ++y)
+    for (x = max(0, minx); (int)x < min(maxx, WIDTH); ++x)
+      pixel((uv2){x, y},
+            s.t->pix[(u32)((dbl)(y - miny) * s.t->h / h) * s.t->w +
+                     (u32)((dbl)(x - minx) * s.t->w / w)],
+            f);
 }
 
 void drawbsp(bspnode *node, pos c, frame *f, trg t) {

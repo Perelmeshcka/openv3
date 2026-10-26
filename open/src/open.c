@@ -16,13 +16,15 @@
 
 frame fd;
 u32 tick;
-GLuint tex;
+GLuint texture;
 trg T;
 
 prism *prisms;
 u32 prismnum;
 bspnode *map;
 pos campos;
+tex testt;
+item test;
 
 bool keystate[256];
 
@@ -62,6 +64,19 @@ static prism prisminit(vec2 *v, rgb *c, u32 len, dbl zt, dbl zb, rgb ct,
 
 char *path;
 void sceneinit(void) {
+  testt = (tex){
+      .w = 1,
+      .h = 2,
+      .pix = (rgb[2]){{0, 0, 0}, {0, 255, 0}},
+  };
+  test = (item){
+      .w = 5,
+      .h = 10,
+      .pos = {0, 200, 10},
+      .t = &testt,
+  };
+  fputs("1", stderr);
+
   map = malloc(sizeof(bspnode));
   FILE *mapfile = fopen(path, "rb");
   assert(mapfile);
@@ -69,10 +84,9 @@ void sceneinit(void) {
   u32 prnum;
   fscanf(mapfile, "%d", &prnum);
   *map = (bspnode){
-    .itemnum = 0,
-    .items = NULL,
-    .prisms = (prism *)calloc(prnum, sizeof(prism)),
-    .prismnum = prnum,
+      .items = NULL,
+      .prisms = (prism *)calloc(prnum, sizeof(prism)),
+      .prismnum = prnum,
   };
 
   u32 n;
@@ -101,7 +115,7 @@ void sceneinit(void) {
     fscanf(mapfile, "%c%c%c", &cb.r, &cb.g, &cb.b);
 
     map->prisms[i] = prisminit(top, c, n, zt, zb, ct, cb);
-    
+
     free(top);
     free(c);
   }
@@ -166,8 +180,8 @@ void keyact(u8 key) {
 }
 
 void texinit(void) {
-  glGenTextures(1, &tex);
-  glBindTexture(GL_TEXTURE_2D, tex);
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
@@ -183,10 +197,12 @@ void display() {
 
   frameupd(&fd);
   fillframe(&fd, (rgb){0, 0, 100});
+  drawitem(test, campos, &fd, T);
   drawbsp(map, campos, &fd, T);
+  // fputs("2", stderr);
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glBindTexture(GL_TEXTURE_2D, tex);
+  glBindTexture(GL_TEXTURE_2D, texture);
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, WIDTH, HEIGHT, GL_RGB,
                   GL_UNSIGNED_BYTE, fd.pix);
 
@@ -234,10 +250,10 @@ int main(int argc, char **argv) {
     return 1;
   }
   path = argv[1];
- 
+
   tick = 0;
   trginit(&T);
-  
+
   sceneinit();
 
   glutInit(&argc, argv);

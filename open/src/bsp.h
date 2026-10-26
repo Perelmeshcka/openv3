@@ -10,14 +10,18 @@ typedef struct prism {
   u32 wallnum;
 } prism;
 
+typedef struct itemnode {
+  item i;
+  void *next;
+} itemnode;
+
 typedef struct bspnode {
   vec3 del;
   wall *delim;
   u32 delnum;
   prism *prisms;
   u32 prismnum;
-  item *items;
-  u32 itemnum;
+  itemnode *items;
   void *left;
   void *right;
 } bspnode;

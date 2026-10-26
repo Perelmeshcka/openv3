@@ -4,3 +4,4 @@
 #define PIX 3
 #define FPS 60
 #define TITLE "open"
+#define FOCUS 200
